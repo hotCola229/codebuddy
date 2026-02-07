@@ -29,26 +29,26 @@ management:
 # 第三方接口配置
 third-party:
   dict:
-    base-url: http://172.20.4.32:18022/
+    base-url: http://localhost:18022/
     app-key: 28dc15bb-2e2c-45e4-b435-525853f69173
     app-secret: 0e27fdf2820802cdea8e0eb22b695c93
 
 # RestTemplate 配置
 rest-template:
-  connectTimeout: 5000  # 连接超时（毫秒）
-  readTimeout: 10000    # 读取超时（毫秒）
+  connectTimeout: 5000
+  readTimeout: 10000
 
 # 重试策略配置
 retry:
   policy:
-    max-attempts: 3          # 最大重试次数
-    initial-delay: 1000      # 初始延迟（毫秒）
-    multiplier: 2.0          # 退避乘数
-    max-delay: 10000         # 最大延迟（毫秒）
+    max-attempts: 3
+    initial-delay: 1000
+    multiplier: 2.0
+    max-delay: 10000
 
 # 限流配置
 rate-limit:
   dict-query:
-    capacity: 100           # 桶容量
-    refill-tokens: 10       # 补充令牌数量
-    refill-millis: 1000     # 补充周期（毫秒）
+    capacity: 100
+    refill-tokens: 10
+    refill-millis: 1000

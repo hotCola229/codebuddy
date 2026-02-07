@@ -10,6 +10,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpServerErrorException;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import java.util.Set;
 
 /**
  * 全局异常处理器
@@ -40,6 +45,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 参数约束违反异常（@Validated 单个参数校验）
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleConstraintViolationException(ConstraintViolationException ex) {
+        Set<ConstraintViolation<?>> violations = ex.getConstraintViolations();
+        String message = violations.isEmpty() ? "参数校验失败" : violations.iterator().next().getMessage();
+        return ApiResponse.error(ErrorCode.PARAM_VALIDATION_ERROR.getCode(), message);
+    }
+
+    /**
      * 请求参数格式/类型错误
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -55,6 +71,15 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Void> handleBusinessException(BusinessException ex) {
         return ApiResponse.error(ex.getCode(), ex.getMessage());
+    }
+
+    /**
+     * 第三方接口5xx异常
+     */
+    @ExceptionHandler(HttpServerErrorException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiResponse<Void> handleHttpServerErrorException(HttpServerErrorException ex) {
+        return ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR.getCode(), "第三方服务异常");
     }
 
     /**

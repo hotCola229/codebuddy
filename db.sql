@@ -16,3 +16,25 @@ CREATE TABLE IF NOT EXISTS project (
     INDEX idx_status (status),
     INDEX idx_deleted (deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='项目表';
+
+-- 创建第三方调用日志表
+CREATE TABLE IF NOT EXISTS external_call_log (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+    trace_id VARCHAR(64) NOT NULL COMMENT '追踪ID（从请求头 X-Trace-Id 读取，没有则生成 UUID）',
+    request_id VARCHAR(64) NULL COMMENT '请求ID',
+    service VARCHAR(50) NOT NULL COMMENT '服务名称（固定值：DICT_QUERY）',
+    target_url VARCHAR(500) NULL COMMENT '目标URL',
+    http_method VARCHAR(10) NULL COMMENT 'HTTP方法',
+    query_string TEXT NULL COMMENT '查询参数',
+    http_status INT NULL COMMENT 'HTTP状态码',
+    success TINYINT NOT NULL COMMENT '是否成功（0=失败，1=成功）',
+    attempt INT NOT NULL COMMENT '尝试次数（从1开始）',
+    duration_ms BIGINT NULL COMMENT '耗时（毫秒）',
+    exception_type VARCHAR(50) NULL COMMENT '异常类型（例如：TIMEOUT, IO_EXCEPTION, RATE_LIMIT等）',
+    exception_message TEXT NULL COMMENT '异常消息',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    INDEX idx_trace_id (trace_id),
+    INDEX idx_service (service),
+    INDEX idx_created_at (created_at),
+    INDEX idx_success (success)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='第三方调用日志表';
