@@ -24,9 +24,7 @@ public class RequestContext {
     }
 
     public void reset() {
-        Map<String, Object> ctx = LOCAL.get();
-        if (ctx != null) {
-            ctx.clear();
-        }
+        // 彻底清理 ThreadLocal，防止内存泄漏
+        LOCAL.remove();
     }
 }

@@ -21,13 +21,16 @@ public class UserProfileService {
     public String loadDisplayName(String userId) {
         requestContext.bind(UUID.randomUUID().toString(), userId);
 
-        // 执行业务逻辑（例如：参数校验、权限检查、查询用户信息、组装返回结果、记录日志等）
-        String name = store.get(userId);
-        if (name == null) {
-            throw new IllegalArgumentException("user not found: " + userId);
+        try {
+            // 执行业务逻辑（例如：参数校验、权限检查、查询用户信息、组装返回结果、记录日志等）
+            String name = store.get(userId);
+            if (name == null) {
+                throw new IllegalArgumentException("user not found: " + userId);
+            }
+            return name;
+        } finally {
+            // 确保无论是否抛出异常都清理 ThreadLocal
+            requestContext.reset();
         }
-
-        requestContext.reset();
-        return name;
     }
 }
