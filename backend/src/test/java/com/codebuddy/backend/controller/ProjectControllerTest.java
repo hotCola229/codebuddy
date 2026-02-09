@@ -120,7 +120,7 @@ class ProjectControllerTest {
     /**
      * 测试分页查询
      */
-   /* @Test
+    @Test
     void testListProjects() throws Exception {
         // 先创建几个项目
         for (int i = 1; i <= 5; i++) {
@@ -138,7 +138,7 @@ class ProjectControllerTest {
                 .andExpect(jsonPath("$.data.page").value(1))
                 .andExpect(jsonPath("$.data.size").value(10))
                 .andExpect(jsonPath("$.data.total").value(greaterThanOrEqualTo(5)));
-    }*/
+    }
 
     /**
      * 测试更新项目
@@ -186,5 +186,70 @@ class ProjectControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.records").isArray());
+    }
+
+    /**
+     * 测试分页参数校验 - page 小于 1
+     */
+    @Test
+    void testListProjectsValidationPageLessThan1() throws Exception {
+        mockMvc.perform(get("/api/projects?page=0&size=10"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40001));
+    }
+
+    /**
+     * 测试分页参数校验 - size 超过 100
+     */
+    @Test
+    void testListProjectsValidationSizeGreaterThan100() throws Exception {
+        mockMvc.perform(get("/api/projects?page=1&size=101"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(40001));
+    }
+
+    /**
+     * 测试根据 owner 搜索
+     */
+    @Test
+    void testListProjectsSearchByOwner() throws Exception {
+        // 创建特定负责人的项目
+        String requestBody = "{\"name\":\"项目1\",\"owner\":\"特定负责人\",\"status\":0}";
+        mockMvc.perform(post("/api/projects")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody));
+
+        // 按负责人搜索
+        mockMvc.perform(get("/api/projects?page=1&size=10&keyword=特定负责人"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.records").isArray())
+                .andExpect(jsonPath("$.data.records[0].owner").value("特定负责人"));
+    }
+
+    /**
+     * 测试更新不存在的项目
+     */
+    @Test
+    void testUpdateProjectNotFound() throws Exception {
+        String requestBody = "{\"name\":\"新项目名\",\"owner\":\"新负责人\",\"status\":1}";
+
+        mockMvc.perform(put("/api/projects/999999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(40401))
+                .andExpect(jsonPath("$.message").value("项目不存在"));
+    }
+
+    /**
+     * 测试删除不存在的项目
+     */
+    @Test
+    void testDeleteProjectNotFound() throws Exception {
+        mockMvc.perform(delete("/api/projects/999999"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(40401))
+                .andExpect(jsonPath("$.message").value("项目不存在"));
     }
 }

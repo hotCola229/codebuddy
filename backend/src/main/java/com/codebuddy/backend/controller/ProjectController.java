@@ -1,13 +1,11 @@
 package com.codebuddy.backend.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.codebuddy.backend.common.ApiResponse;
 import com.codebuddy.backend.dto.ProjectCreateRequest;
 import com.codebuddy.backend.dto.ProjectUpdateRequest;
-import com.codebuddy.backend.entity.Project;
 import com.codebuddy.backend.service.ProjectService;
-import org.springframework.beans.BeanUtils;
+import com.codebuddy.backend.vo.ProjectResponseVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,10 +30,8 @@ public class ProjectController {
      * 创建项目
      */
     @PostMapping
-    public ApiResponse<Project> create(@Valid @RequestBody ProjectCreateRequest request) {
-        Project project = new Project();
-        BeanUtils.copyProperties(request, project);
-        Project created = projectService.create(project);
+    public ApiResponse<ProjectResponseVO> create(@Valid @RequestBody ProjectCreateRequest request) {
+        ProjectResponseVO created = projectService.create(request);
         return ApiResponse.success(created);
     }
 
@@ -43,8 +39,8 @@ public class ProjectController {
      * 根据ID获取项目
      */
     @GetMapping("/{id}")
-    public ApiResponse<Project> getById(@PathVariable Long id) {
-        Project project = projectService.getById(id);
+    public ApiResponse<ProjectResponseVO> getById(@PathVariable Long id) {
+        ProjectResponseVO project = projectService.getById(id);
         return ApiResponse.success(project);
     }
 
@@ -52,11 +48,11 @@ public class ProjectController {
      * 分页查询项目列表
      */
     @GetMapping
-    public ApiResponse<IPage<Project>> list(
+    public ApiResponse<IPage<ProjectResponseVO>> list(
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "页码必须大于0") Integer page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "每页数量必须大于0") @Max(value = 100, message = "每页数量不能超过100") Integer size,
             @RequestParam(required = false) String keyword) {
-        IPage<Project> result = projectService.listProjects(page, size, keyword);
+        IPage<ProjectResponseVO> result = projectService.listProjects(page, size, keyword);
         return ApiResponse.success(result);
     }
 
@@ -64,12 +60,10 @@ public class ProjectController {
      * 更新项目
      */
     @PutMapping("/{id}")
-    public ApiResponse<Project> update(
+    public ApiResponse<ProjectResponseVO> update(
             @PathVariable Long id,
             @Valid @RequestBody ProjectUpdateRequest request) {
-        Project project = new Project();
-        BeanUtils.copyProperties(request, project);
-        Project updated = projectService.update(id, project);
+        ProjectResponseVO updated = projectService.update(id, request);
         return ApiResponse.success(updated);
     }
 

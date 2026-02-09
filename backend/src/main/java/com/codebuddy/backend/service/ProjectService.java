@@ -4,9 +4,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.codebuddy.backend.common.ErrorCode;
+import com.codebuddy.backend.converter.ProjectConverter;
+import com.codebuddy.backend.dto.ProjectCreateRequest;
+import com.codebuddy.backend.dto.ProjectUpdateRequest;
 import com.codebuddy.backend.entity.Project;
 import com.codebuddy.backend.exception.BusinessException;
 import com.codebuddy.backend.mapper.ProjectMapper;
+import com.codebuddy.backend.vo.ProjectResponseVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -19,26 +24,24 @@ public class ProjectService extends ServiceImpl<ProjectMapper, Project> {
     /**
      * 创建项目
      */
-    public Project create(Project project) {
+    public ProjectResponseVO create(ProjectCreateRequest request) {
+        Project project = ProjectConverter.toEntity(request);
         save(project);
-        return project;
+        return ProjectConverter.toVO(project);
     }
 
     /**
      * 根据ID获取项目
      */
-    public Project getById(Long id) {
-        Project project = super.getById(id);
-        if (project == null) {
-            throw new BusinessException(40401, "项目不存在");
-        }
-        return project;
+    public ProjectResponseVO getById(Long id) {
+        Project project = getEntityById(id);
+        return ProjectConverter.toVO(project);
     }
 
     /**
      * 分页查询项目列表
      */
-    public IPage<Project> listProjects(Integer page, Integer size, String keyword) {
+    public IPage<ProjectResponseVO> listProjects(Integer page, Integer size, String keyword) {
         Page<Project> pageParam = new Page<>(page, size);
 
         LambdaQueryWrapper<Project> queryWrapper = new LambdaQueryWrapper<>();
@@ -50,26 +53,39 @@ public class ProjectService extends ServiceImpl<ProjectMapper, Project> {
             );
         }
 
-        return page(pageParam, queryWrapper);
+        IPage<Project> entityPage = page(pageParam, queryWrapper);
+        return entityPage.convert(ProjectConverter::toVO);
     }
 
     /**
      * 更新项目
      */
-    public Project update(Long id, Project project) {
-        Project existing = getById(id);
-        existing.setName(project.getName());
-        existing.setOwner(project.getOwner());
-        existing.setStatus(project.getStatus());
+    public ProjectResponseVO update(Long id, ProjectUpdateRequest request) {
+        Project existing = getEntityById(id);
+        Project updateEntity = ProjectConverter.toEntity(request);
+        existing.setName(updateEntity.getName());
+        existing.setOwner(updateEntity.getOwner());
+        existing.setStatus(updateEntity.getStatus());
         updateById(existing);
-        return existing;
+        return ProjectConverter.toVO(existing);
     }
 
     /**
      * 删除项目（逻辑删除）
      */
     public void delete(Long id) {
-        Project project = getById(id);
+        getEntityById(id); // 验证项目存在
         removeById(id);
+    }
+
+    /**
+     * 获取 Entity（内部使用）
+     */
+    private Project getEntityById(Long id) {
+        Project project = super.getById(id);
+        if (project == null) {
+            throw new BusinessException(ErrorCode.PROJECT_NOT_FOUND);
+        }
+        return project;
     }
 }
